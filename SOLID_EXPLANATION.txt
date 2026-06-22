@@ -1,0 +1,188 @@
+============================================================
+  SOLID PRINCIPLES — WHERE & WHY APPLIED
+============================================================
+
+------------------------------------------------------------
+1. S — Single Responsibility Principle (SRP)
+------------------------------------------------------------
+Def: A class should have only ONE reason to change.
+
+WHERE APPLIED:
+  • Patient.java      — only stores patient data (name, age, history).
+                        If billing logic were here, a billing rule change
+                        would force Patient to change. Kept separate.
+
+  • Doctor.java       — only stores doctor data. No scheduling logic inside.
+
+  • Appointment.java  — only stores appointment data. The decision to
+                        schedule or cancel lives in AppointmentService.
+
+  • Bill.java         — only stores billing data. Calculation logic lives
+                        in BillingService / IBillingStrategy.
+
+  • AppointmentService.java — only handles appointment scheduling logic.
+  • BillingService.java     — only handles bill generation and payment.
+  • NotificationService.java — only coordinates sending notifications.
+
+BEFORE (violation — God class):
+  public class HospitalManager {
+      public void scheduleAppointment() { ... }
+      public void sendEmail()           { ... }
+      public void generateBill()        { ... }
+      public void savePatient()         { ... }
+      // one class doing EVERYTHING — changes constantly for many reasons
+  }
+
+AFTER (fixed):
+  AppointmentService, BillingService, NotificationService
+  — each class changes for only one reason.
+
+------------------------------------------------------------
+2. O — Open/Closed Principle (OCP)
+------------------------------------------------------------
+Def: Open for EXTENSION, closed for MODIFICATION.
+     Add new behaviour by adding new code, not editing existing code.
+
+WHERE APPLIED:
+  • IBillingStrategy interface:
+      CashBilling     — full price
+      InsuranceBilling — price minus coverage %
+    Tomorrow: add GovernmentBilling, MpesaBilling, etc.
+    BillingService NEVER changes — just inject the new strategy.
+
+  • Notifiable interface:
+      EmailNotification
+      SMSNotification
+    Tomorrow: add PushNotification, WhatsAppNotification, etc.
+    NotificationService NEVER changes.
+
+BEFORE (violation):
+  public double calculateBill(String type, double amount) {
+      if (type.equals("cash"))      return amount;
+      if (type.equals("insurance")) return amount * 0.2;
+      // every new type = edit this method = risky
+  }
+
+AFTER (fixed):
+  BillingService depends on IBillingStrategy.
+  New type = new class. Existing code untouched.
+
+------------------------------------------------------------
+3. L — Liskov Substitution Principle (LSP)
+------------------------------------------------------------
+Def: Subtypes must be substitutable for their base type
+     without breaking the program.
+
+WHERE APPLIED:
+  • Specialist extends Doctor.
+    AppointmentService only knows about Doctor.
+    When a Specialist is stored/retrieved, all Doctor methods
+    (getId, getName, getSpecialization) still work correctly.
+    The service does not break or behave differently.
+
+  • EmailNotification and SMSNotification both implement Notifiable.
+    AppointmentService holds a Notifiable reference.
+    Swapping Email for SMS changes the channel but never breaks
+    the contract — sendNotification(recipient, message) always works.
+
+BEFORE (violation — the Rectangle/Square trap):
+  Square extends Rectangle but overrides setWidth to also set height.
+  Code that calls setWidth on a Rectangle reference gets wrong area
+  when the actual object is a Square. LSP broken.
+
+AFTER (fixed):
+  Specialist only ADDS new methods (getSubSpecialization,
+  getYearsOfExperience). It never overrides parent behaviour in a
+  way that breaks callers.
+
+------------------------------------------------------------
+4. I — Interface Segregation Principle (ISP)
+------------------------------------------------------------
+Def: Clients should not be forced to depend on methods they don't use.
+     Keep interfaces small and focused.
+
+WHERE APPLIED:
+  • Notifiable has exactly ONE method: sendNotification().
+    EmailNotification and SMSNotification implement only what they need.
+    No forced implementation of unrelated methods.
+
+  • IPatientRepository, IDoctorRepository, IAppointmentRepository
+    are three separate interfaces — not one giant IRepository with
+    all methods mixed together.
+    AppointmentService only imports the interfaces it needs.
+
+BEFORE (violation):
+  public interface HospitalWorker {
+      void treatPatient();   // only doctors do this
+      void payBill();        // only billing staff do this
+      void sendEmail();      // only notification staff do this
+      void scheduleRoom();   // only admins do this
+  }
+  // Doctor is forced to implement payBill() and sendEmail() — not its job!
+
+AFTER (fixed):
+  Notifiable        — sendNotification() only
+  IBillingStrategy  — calculateBill() + getBillingType() only
+  IPatientRepository — patient CRUD only
+
+------------------------------------------------------------
+5. D — Dependency Inversion Principle (DIP)
+------------------------------------------------------------
+Def: High-level modules should not depend on low-level modules.
+     Both should depend on ABSTRACTIONS (interfaces/abstract classes).
+
+WHERE APPLIED:
+  • AppointmentService constructor receives:
+      IPatientRepository     (not InMemoryPatientRepository)
+      IDoctorRepository      (not InMemoryDoctorRepository)
+      IAppointmentRepository (not InMemoryAppointmentRepository)
+      Notifiable             (not EmailNotification)
+    → To switch from in-memory storage to MySQL, only the wiring in
+      Main changes. AppointmentService does not change at all.
+
+  • BillingService receives:
+      IBillingStrategy       (not CashBilling or InsuranceBilling)
+    → To switch billing method, pass a different strategy. Service unchanged.
+
+  • NotificationService receives:
+      List<Notifiable>       (not List<EmailNotification>)
+    → New channels are added in Main's wiring. Service unchanged.
+
+BEFORE (violation — tight coupling):
+  public class AppointmentService {
+      private MySQLDatabase db = new MySQLDatabase(); // hardcoded low-level class
+      private EmailNotification email = new EmailNotification(); // hardcoded
+  }
+  // Changing DB or email provider = rewrite this class
+
+AFTER (fixed):
+  public class AppointmentService {
+      private IPatientRepository db;       // abstraction
+      private Notifiable         notifier; // abstraction
+      public AppointmentService(IPatientRepository db, Notifiable notifier) {
+          this.db      = db;       // injected from outside
+          this.notifier = notifier;
+      }
+  }
+
+============================================================
+SUMMARY TABLE
+============================================================
+
+Principle | Class / Interface           | How
+----------|-----------------------------|----------------------------
+SRP       | Patient, Doctor, Appointment| One class = one job
+          | Bill, AppointmentService    |
+          | BillingService              |
+OCP       | IBillingStrategy            | Add CashBilling /
+          | CashBilling, InsuranceBilling| InsuranceBilling without
+          | Notifiable, Email, SMS      | touching BillingService
+LSP       | Specialist extends Doctor   | Specialist works wherever
+          | Email/SMS implement Notifiable| Doctor is expected
+ISP       | Notifiable (1 method)       | Small, focused interfaces
+          | IPatientRepository, etc.    | No forced unused methods
+DIP       | AppointmentService,         | Constructor injection of
+          | BillingService,             | interfaces — concrete
+          | NotificationService         | classes only in Main
+
+============================================================
