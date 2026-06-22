@@ -1,0 +1,145 @@
+============================================================
+  HOSPITAL MANAGEMENT SYSTEM — UML CLASS DIAGRAM
+============================================================
+
+KEY:  <<interface>>  =  interface
+       [A]           =  abstract class
+       <>--          =  composition / dependency
+       ^             =  implements / extends (arrow points to parent)
+
+------------------------------------------------------------
+INTERFACES
+------------------------------------------------------------
+
+  <<interface>>          <<interface>>          <<interface>>
+  Notifiable             IBillingStrategy       IPatientRepository
+  ─────────────          ────────────────       ──────────────────────
+  +sendNotification      +calculateBill()       +save(Patient)
+   (String,String):void  +getBillingType()      +findById(int):Patient
+                          :double/:String        +getAll():List<Patient>
+
+  <<interface>>                     <<interface>>
+  IDoctorRepository                 IAppointmentRepository
+  ─────────────────────             ──────────────────────────
+  +save(Doctor)                     +save(Appointment)
+  +findById(int):Doctor             +getAll():List<Appointment>
+  +getAll():List<Doctor>
+
+------------------------------------------------------------
+MODELS
+------------------------------------------------------------
+
+  Patient                  Doctor                   Bill
+  ─────────────────        ─────────────────        ─────────────────────
+  -id: int                 -id: int                 -id: int
+  -name: String            -name: String            -patient: Patient <>--
+  -age: int                -specialization: String  -amount: double
+  -medicalHistory: String  ─────────────────        -billingType: String
+  ─────────────────        +getId()                 -paid: boolean
+  +getId()                 +getName()               ─────────────────────
+  +getName()               +getSpecialization()     +getAmount()
+  +getAge()                                         +markAsPaid()
+  +getMedicalHistory()          ^
+  +setMedicalHistory()          | extends (LSP)
+                           Specialist
+                           ─────────────────
+                           -subSpecialization: String
+                           -yearsOfExperience: int
+                           ─────────────────
+                           +getSubSpecialization()
+                           +getYearsOfExperience()
+
+  Appointment
+  ──────────────────────────────
+  -id: int
+  -patient: Patient       <>-----> Patient
+  -doctor: Doctor         <>-----> Doctor
+  -date: String
+  -status: String
+  ──────────────────────────────
+  +getStatus()
+  +setStatus(String)
+
+------------------------------------------------------------
+BILLING STRATEGIES  (OCP)
+------------------------------------------------------------
+
+         <<interface>>
+         IBillingStrategy
+              ^        ^
+              |        |
+  CashBilling     InsuranceBilling
+  ─────────────   ──────────────────────
+  (no fields)     -coveragePercent: double
+  ─────────────   ──────────────────────
+  +calculateBill  +calculateBill
+  +getBillingType +getBillingType
+
+------------------------------------------------------------
+NOTIFICATION CHANNELS  (OCP + LSP + ISP)
+------------------------------------------------------------
+
+         <<interface>>
+         Notifiable
+              ^        ^
+              |        |
+  EmailNotification   SMSNotification
+  ─────────────────   ────────────────
+  +sendNotification   +sendNotification
+
+------------------------------------------------------------
+REPOSITORIES  (DIP)
+------------------------------------------------------------
+
+  IPatientRepository          IDoctorRepository         IAppointmentRepository
+         ^                           ^                           ^
+         |                           |                           |
+  InMemoryPatientRepo     InMemoryDoctorRepo        InMemoryAppointmentRepo
+  ───────────────────     ──────────────────        ──────────────────────
+  -patients:List<Patient> -doctors:List<Doctor>     -appointments:List<>
+
+------------------------------------------------------------
+SERVICES  (SRP + DIP)
+------------------------------------------------------------
+
+  AppointmentService
+  ───────────────────────────────────────────────────
+  -patientRepo:     IPatientRepository       <>-----> IPatientRepository
+  -doctorRepo:      IDoctorRepository        <>-----> IDoctorRepository
+  -appointmentRepo: IAppointmentRepository   <>-----> IAppointmentRepository
+  -notifier:        Notifiable               <>-----> Notifiable
+  ───────────────────────────────────────────────────
+  +scheduleAppointment(int,int,String):Appointment
+  +cancelAppointment(int)
+  +getAllAppointments():List<Appointment>
+
+  BillingService
+  ───────────────────────────────
+  -strategy: IBillingStrategy    <>-----> IBillingStrategy
+  -bills: List<Bill>
+  ───────────────────────────────
+  +generateBill(Patient,double):Bill
+  +payBill(int)
+  +getAllBills():List<Bill>
+
+  NotificationService
+  ───────────────────────────────
+  -channels: List<Notifiable>    <>-----> Notifiable (0..*)
+  ───────────────────────────────
+  +notifyAll(String,String)
+
+------------------------------------------------------------
+MAIN (wiring / composition root)
+------------------------------------------------------------
+
+  Main
+  ──────────────────────────────────────────────
+  Creates: InMemoryPatientRepository
+           InMemoryDoctorRepository
+           InMemoryAppointmentRepository
+           EmailNotification, SMSNotification
+           CashBilling, InsuranceBilling(80%)
+  Injects: AppointmentService, BillingService,
+           NotificationService
+  ──────────────────────────────────────────────
+
