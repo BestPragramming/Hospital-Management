@@ -88,7 +88,7 @@ java -cp out Main
 
 ### Expected Output
 
-![Expected outcome]()
+![Expected outcome](https://github.com/BestPragramming/Hospital-Management/blob/main/asset/image.png)
 
 ---
 
