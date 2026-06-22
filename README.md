@@ -230,7 +230,7 @@ public class AppointmentService {
 
 ## 📊 UML Class Diagram
 
-![UML Class Diagram](uml_diagram.jpeg)
+![UML Class Diagram](https://github.com/BestPragramming/Hospital-Management/blob/main/src/ui/class%20diagram%20best.png)
 
 ---
 
