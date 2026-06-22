@@ -1,6 +1,6 @@
 # 🏥 Hospital Management System — SOLID Principles
 
-> **Assignment #2** | Object-Oriented Design | Java Implementation
+> **Assignment 2** | Best programming practices & Design principles | Java Implementation
 
 A refactored Hospital Management System built to demonstrate all five **SOLID** object-oriented design principles. The system manages patients, doctors, appointments, billing, and notifications through a clean, layered architecture.
 
@@ -213,8 +213,8 @@ public class AppointmentService {
 
 - R. C. Martin, *Agile Software Development: Principles, Patterns, and Practices.* Prentice Hall, 2003.
 - Wikipedia, [SOLID (object-oriented design)](https://en.wikipedia.org/wiki/SOLID)
-- Anthropic, [Claude AI](https://claude.ai) — used for documentation structuring and SOLID principle explanations.
+- Anthropic, [Claude AI](https://claude.ai) — used for documentation structuring and SOLID principle explanation and implemetantion.
 
 ---
 
-*Submitted as part of Assignment #2 — Hospital Management Refactoring Challenge*
+*Submitted as part of Assignment 2 — Hospital Management Refactoring Challenge*
