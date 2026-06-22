@@ -43,7 +43,7 @@ public class AppointmentService {
         appointmentRepo.save(appointment);
 
         notifier.sendNotification(patient.getName(),
-            "Appointment scheduled with Dr. " + doctor.getName() + " on " + date);
+            "Appointment scheduled with " + doctor.getName() + " on " + date);
 
         return appointment;
     }

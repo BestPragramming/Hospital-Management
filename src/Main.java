@@ -6,8 +6,11 @@ import notification.EmailNotification;
 import notification.SMSNotification;
 import repository.*;
 import services.*;
+import ui.ConsoleUI;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -52,44 +55,49 @@ public class Main {
             patientRepo, doctorRepo, appointmentRepo, email
         );
 
-        System.out.println("=== SCHEDULING APPOINTMENTS ===");
+        ConsoleUI.printBanner();
+
+        ConsoleUI.printSection("SCHEDULING APPOINTMENTS");
         Appointment a1 = appointmentService.scheduleAppointment(1, 1, "2026-06-20");
         Appointment a2 = appointmentService.scheduleAppointment(2, 2, "2026-06-21");
         Appointment a3 = appointmentService.scheduleAppointment(3, 1, "2026-06-22");
 
-        System.out.println("\n--- Cancelling appointment #" + a3.getId() + " ---");
+        ConsoleUI.printAction("Cancelling appointment #" + a3.getId());
         appointmentService.cancelAppointment(a3.getId());
 
         // ----------------------------------------------------------------
         // 6. Billing  (OCP: switch strategy without changing BillingService)
         // ----------------------------------------------------------------
-        System.out.println("\n=== BILLING ===");
+        ConsoleUI.printSection("BILLING");
         BillingService cashService      = new BillingService(new CashBilling());
         BillingService insuranceService = new BillingService(new InsuranceBilling(80));
 
         Bill bill1 = cashService.generateBill(alice, 500.00);
         Bill bill2 = insuranceService.generateBill(bonfils, 1200.00);
-        System.out.println(bill1);
-        System.out.println(bill2);
+
+        List<Bill> allBillsNow = new ArrayList<>(cashService.getAllBills());
+        allBillsNow.addAll(insuranceService.getAllBills());
+        ConsoleUI.printBillsTable(allBillsNow);
 
         cashService.payBill(bill1.getId());
 
         // ----------------------------------------------------------------
         // 7. Multi-channel notifications  (OCP + DIP + ISP)
         // ----------------------------------------------------------------
-        System.out.println("\n=== MULTI-CHANNEL NOTIFICATIONS ===");
+        ConsoleUI.printSection("MULTI-CHANNEL NOTIFICATIONS");
         NotificationService notifier = new NotificationService(Arrays.asList(email, sms));
-        notifier.notifyAll("Alice Uwase",  "Your test results are ready for pickup.");
-        notifier.notifyAll("Bonfils Mugisha",  "Please arrive 15 minutes early tomorrow.");
+        notifier.notifyAll("Alice Uwase",     "Your test results are ready for pickup.");
+        notifier.notifyAll("Bonfils Mugisha", "Please arrive 15 minutes early tomorrow.");
 
         // ----------------------------------------------------------------
         // 8. Summary
         // ----------------------------------------------------------------
-        System.out.println("\n=== ALL APPOINTMENTS ===");
-        appointmentService.getAllAppointments().forEach(System.out::println);
+        ConsoleUI.printSection("ALL APPOINTMENTS");
+        ConsoleUI.printAppointmentsTable(appointmentService.getAllAppointments());
 
-        System.out.println("\n=== ALL BILLS ===");
-        cashService.getAllBills().forEach(System.out::println);
-        insuranceService.getAllBills().forEach(System.out::println);
+        ConsoleUI.printSection("ALL BILLS");
+        List<Bill> finalBills = new ArrayList<>(cashService.getAllBills());
+        finalBills.addAll(insuranceService.getAllBills());
+        ConsoleUI.printBillsTable(finalBills);
     }
 }

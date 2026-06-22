@@ -3,6 +3,7 @@ package services;
 import interfaces.IBillingStrategy;
 import models.Bill;
 import models.Patient;
+import ui.ConsoleUI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class BillingService {
              .findFirst()
              .ifPresent(b -> {
                  b.markAsPaid();
-                 System.out.println("  >> Bill #" + billId + " marked as PAID.");
+                 ConsoleUI.printSuccess("Bill #" + billId + " marked as PAID.");
              });
     }
 
