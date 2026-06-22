@@ -88,32 +88,7 @@ java -cp out Main
 
 ### Expected Output
 
-```
-=== SCHEDULING APPOINTMENTS ===
-[EMAIL] To: Alice Uwase | Appointment scheduled with Dr. Dr. Kamau on 2026-06-20
-[EMAIL] To: Bonfils Mugisha | Appointment scheduled with Dr. Dr. Nkosi on 2026-06-21
-[EMAIL] To: Clara Ineza | Appointment scheduled with Dr. Dr. Kamau on 2026-06-22
-
---- Cancelling appointment #3 ---
-[EMAIL] To: Clara Ineza | Your appointment on 2026-06-22 has been cancelled.
-
-=== BILLING ===
-Bill{id=1, patient='Alice Uwase', amount=$500.00, type='CASH', paid=false}
-Bill{id=1, patient='Bonfils Mugisha', amount=$240.00, type='INSURANCE (80.0% covered)', paid=false}
-  >> Bill #1 marked as PAID.
-
-=== MULTI-CHANNEL NOTIFICATIONS ===
-[EMAIL] To: Alice Uwase | Your test results are ready for pickup.
-[SMS]   To: Alice Uwase | Your test results are ready for pickup.
-[EMAIL] To: Bonfils Mugisha | Please arrive 15 minutes early tomorrow.
-[SMS]   To: Bonfils Mugisha | Please arrive 15 minutes early tomorrow.
-
-=== ALL APPOINTMENTS ===
-...
-
-=== ALL BILLS ===
-...
-```
+![Expected outcome]()
 
 ---
 
